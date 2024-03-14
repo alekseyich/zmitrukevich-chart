@@ -1,0 +1,69 @@
+name: Invoke workflow
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        type: choice
+        description: 'Environment to deploy'
+        required: true
+        default: 'dev'
+        options:
+        - dev
+        - qa
+        - uat
+        - prf
+        - prd
+      azure_region:
+        type: choice
+        description: 'Azure cloud region'
+        required: true
+        default: 'eastus'
+        options:
+        - eastus
+        - westus3
+      terraform_action:
+        type: choice
+        description: 'Terraform action to perform'
+        required: true
+        default: 'plan'
+        options:
+        - plan
+        - apply
+        # - destroy
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 1
+      matrix:
+        sre-helm-chart: [grafana, sre-kafka-monitor, sre-otel-collector-agent, sre-otel-collector-gw]
+        experimental: [false]
+    steps:
+      - name: Invoke sre workflow and handle result
+        id: trigger-step
+        continue-on-error: ${{ matrix.experimental }}
+        uses: aurelien-baudet/workflow-dispatch@v2
+        with:
+          workflow: single_deploy.yml
+          inputs: "{\"envname\": \"$env_name\", \"azure_region\": \"${{ env.azure_region }}\", \"chart_name\": \"${{ matrix.sre-helm-chart }}\"}"
+          repo: alekseyich/zmitrukevich-chart
+          ref: main
+          wait-for-completion: true
+          display-workflow-run-url: true
+          token: ${{ secrets.ACCESS_TOKEN_GITHUB }}
+          wait-for-completion-interval: 30s
+
+      - name: Informational step
+        if: always()
+        run: |
+          echo "single_deploy.yml URL: ${{ steps.trigger-step.outputs.workflow-url }}"
+
+      - name: Check triggered workflow status
+        if: always()
+        run: |
+          if [ ${{ steps.trigger-step.outputs.workflow-conclusion }} != 'success' ] ; then
+            echo "Triggered workflow failed"
+            exit 1
+          fi  
