@@ -32,6 +32,10 @@ on:
         - apply
         # - destroy
 
+env:
+  deploy_environment: ${{ github.event.inputs.environment == '' && 'dev' || github.event.inputs.environment }}
+  azure_region: ${{ github.event.inputs.azure_region == '' && 'eastus' || github.event.inputs.azure_region }}
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -47,7 +51,7 @@ jobs:
         uses: aurelien-baudet/workflow-dispatch@v2
         with:
           workflow: single_deploy.yml
-          inputs: "{\"envname\": \"$env_name\", \"azure_region\": \"${{ env.azure_region }}\", \"chart_name\": \"${{ matrix.sre-helm-chart }}\"}"
+          inputs: "{\"envname\": \"${{ deploy_environment }}\", \"azure_region\": \"${{ env.azure_region }}\", \"chart_name\": \"${{ matrix.sre-helm-chart }}\"}"
           repo: alekseyich/zmitrukevich-chart
           ref: main
           wait-for-completion: true
