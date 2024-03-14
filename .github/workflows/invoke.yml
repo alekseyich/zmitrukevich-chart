@@ -52,7 +52,7 @@ jobs:
         with:
           workflow: single_deploy.yml
           inputs: "{\"envname\": \"${{ env.deploy_environment }}\", \"azure_region\": \"${{ env.azure_region }}\", \"chart_name\": \"${{ matrix.sre-helm-chart }}\"}"
-          repo: alekseyich/zmitrukevich-chart
+          repo: alekseyich/zmitrukevich-flow
           ref: main
           wait-for-completion: true
           display-workflow-run-url: true
