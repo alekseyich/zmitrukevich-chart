@@ -42,7 +42,7 @@ jobs:
     strategy:
       max-parallel: 1
       matrix:
-        sre-helm-chart: [grafana, sre-kafka-monitor, sre-otel-collector-agent, sre-otel-collector-gw]
+        sre-helm-chart: [sre-grafana, sre-kafka-monitor, sre-otel-collector-agent, sre-otel-collector-gw]
         experimental: [false]
     steps:
       - name: Invoke sre workflow and handle result
