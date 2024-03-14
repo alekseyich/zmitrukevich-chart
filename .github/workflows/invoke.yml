@@ -51,7 +51,7 @@ jobs:
         uses: aurelien-baudet/workflow-dispatch@v2
         with:
           workflow: single_deploy.yml
-          inputs: "{\"envname\": \"${{ deploy_environment }}\", \"azure_region\": \"${{ env.azure_region }}\", \"chart_name\": \"${{ matrix.sre-helm-chart }}\"}"
+          inputs: "{\"envname\": \"${{ env.deploy_environment }}\", \"azure_region\": \"${{ env.azure_region }}\", \"chart_name\": \"${{ matrix.sre-helm-chart }}\"}"
           repo: alekseyich/zmitrukevich-chart
           ref: main
           wait-for-completion: true
