@@ -42,9 +42,13 @@ jobs:
     strategy:
       max-parallel: 1
       matrix:
-        sre-helm-chart: [sre-grafana, sre-kafka-monitor, sre-otel-collector-agent, sre-otel-collector-gw]
+        sre-helm-chart: [sre-grafana, sre-kafka-monitor]
+        # sre-helm-chart: [sre-grafana, sre-kafka-monitor, sre-otel-collector-agent, sre-otel-collector-gw]
         experimental: [false]
     steps:
+      - name: Hello World
+        run: echo "Hello Alex"
+        
       - name: Invoke sre workflow and handle result
         id: trigger-step
         continue-on-error: ${{ matrix.experimental }}
