@@ -46,7 +46,7 @@ jobs:
           echo "chart_exists=false" >> $GITHUB_OUTPUT
           echo $GITHUB_OUTPUT
   build:
-    if: ${{ needs.deploy.outputs.chart_exists == 'false' }}
+    if: ${{ needs.test.outputs.chart_exists == 'false' }}
     needs: test
     runs-on: ubuntu-latest
     strategy:
