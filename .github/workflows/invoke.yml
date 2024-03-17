@@ -65,16 +65,19 @@ jobs:
       - name: Check if env is right
         run: |
           if [ "${{ env.deploy_environment }}" = "prf" ]; then
-            echo "::set-env name=envname::perf"
+            custom_environment="perf"
           fi
-        
+          payload="{\"envname\": \"$custom_environment\", \"azure_region\": \"${{ env.azure_region }}\", \"chart_name\": \"${{ matrix.sre-helm-chart }}\"}"
+          echo $payload | jq .
+          echo "JSON_PAYLOAD=$payload" >> $GITHUB_ENV
+          
       - name: Invoke sre workflow and handle result
         id: trigger-step
         continue-on-error: ${{ matrix.experimental }}
         uses: aurelien-baudet/workflow-dispatch@v2
         with:
           workflow: single_deploy.yml
-          inputs: "{\"envname\": \"${{ env.deploy_environment }}\", \"azure_region\": \"${{ env.azure_region }}\", \"chart_name\": \"${{ matrix.sre-helm-chart }}\"}"
+          inputs: ${{ env.JSON_PAYLOAD }}
           repo: alekseyich/zmitrukevich-flow
           ref: main
           wait-for-completion: true
