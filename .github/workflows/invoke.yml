@@ -43,8 +43,8 @@ jobs:
       - name: Hello World
         run: |
           echo "Hello Alex"
-          echo "chart_exists=false" >> $GITHUB_OUTPUT
-          echo $GITHUB_OUTPUT
+          echo "::set-output name=chart_exists::false"
+          echo $chart_exists
   build:
     if: ${{ needs.test.outputs.chart_exists == 'false' }}
     needs: test
