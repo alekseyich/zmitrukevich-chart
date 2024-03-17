@@ -39,15 +39,18 @@ env:
 jobs:
   test:
     runs-on: ubuntu-latest
+    outputs:
+      chart_exists: ${{ steps.hello.outputs.chart_exists }}
     steps:
       - name: Hello World
+        id: hello
         run: |
           echo "Hello Alex"
-          echo "::set-output name=chart_exists::false"
+          echo "chart_exists=false" >> $GITHUB_OUTPUT
           echo $chart_exists
   build:
     if: ${{ needs.test.outputs.chart_exists == 'false' }}
-    needs: test
+    needs: [test]
     runs-on: ubuntu-latest
     strategy:
       max-parallel: 1
