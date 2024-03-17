@@ -67,7 +67,7 @@ jobs:
           if [ "${{ env.deploy_environment }}" = "prf" ]; then
             custom_environment="perf"
           elif [ "${{ env.deploy_environment }}" = "prd" ]; then
-            custom_environment="perf"
+            custom_environment="prod"
           else 
             custom_environment=${{ env.deploy_environment }}
           fi
