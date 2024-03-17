@@ -37,7 +37,16 @@ env:
   azure_region: ${{ github.event.inputs.azure_region == '' && 'eastus' || github.event.inputs.azure_region }}
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Hello World
+        run: |
+          echo "Hello Alex"
+          echo chart_exists=false >> $GITHUB_OUTPUT          
   build:
+    if: ${{ needs.deploy.outputs.chart_exists == 'false' }}
+    needs: test
     runs-on: ubuntu-latest
     strategy:
       max-parallel: 1
