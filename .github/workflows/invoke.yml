@@ -61,6 +61,12 @@ jobs:
     steps:
       - name: Hello World
         run: echo "Hello Alex"
+
+      - name: Check if env is right
+        run: |
+          if [ "${{ env.deploy_environment }}" = "prf" ]; then
+            echo "::set-env name=envname::perf"
+          fi
         
       - name: Invoke sre workflow and handle result
         id: trigger-step
