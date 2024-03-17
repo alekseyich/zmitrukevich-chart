@@ -69,7 +69,7 @@ jobs:
           elif [ "${{ env.deploy_environment }}" = "prd" ]; then
             custom_environment="perf"
           else 
-            custom_environment=${{ env.environment }}
+            custom_environment=${{ env.deploy_environment }}
           fi
           payload="{\"envname\": \"$custom_environment\", \"azure_region\": \"${{ env.azure_region }}\", \"chart_name\": \"${{ matrix.sre-helm-chart }}\"}"
           echo $payload | jq .
