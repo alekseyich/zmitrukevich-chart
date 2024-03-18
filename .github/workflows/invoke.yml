@@ -75,7 +75,7 @@ jobs:
           echo $payload | jq .
           echo "JSON_PAYLOAD=$payload" >> $GITHUB_ENV
           
-      - name: Invoke sre workflow and handle result
+      - name: Invoke ${{ matrix.sre-helm-chart }} chart
         id: trigger-step
         continue-on-error: ${{ matrix.experimental }}
         uses: aurelien-baudet/workflow-dispatch@v2
