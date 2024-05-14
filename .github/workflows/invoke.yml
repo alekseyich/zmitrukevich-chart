@@ -45,9 +45,8 @@ jobs:
       - name: Hello World
         id: hello
         run: |
-          date | gzip --stdout ./date.txt.gz > ./date.txt
+          date  > ./date.txt
           ls -la
-          gunzip -c ./date.txt.gz
           echo "------"
           cat ./date.txt
 
