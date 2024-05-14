@@ -45,59 +45,63 @@ jobs:
       - name: Hello World
         id: hello
         run: |
-          echo "Hello Alex"
-          echo "chart_exists=false" >> $GITHUB_OUTPUT
-          echo $chart_exists
-  build:
-    if: ${{ needs.test.outputs.chart_exists == 'false' }}
-    needs: [test]
-    runs-on: ubuntu-latest
-    strategy:
-      max-parallel: 1
-      matrix:
-        sre-helm-chart: [sre-grafana, sre-kafka-monitor]
-        # sre-helm-chart: [sre-grafana, sre-kafka-monitor, sre-otel-collector-agent, sre-otel-collector-gw]
-        experimental: [false]
-    steps:
-      - name: Hello World
-        run: echo "Hello Alex"
+          date | gzip --stdout ./date.txt.gz > ./date.txt
+          ls -la
+          gunzip -c ./date.txt.gz
+          echo "------"
+          cat ./date.txt
 
-      - name: Check if env is right
-        run: |
-          if [ "${{ env.deploy_environment }}" = "prf" ]; then
-            custom_environment="perf"
-          elif [ "${{ env.deploy_environment }}" = "prd" ]; then
-            custom_environment="prod"
-          else 
-            custom_environment=${{ env.deploy_environment }}
-          fi
-          payload="{\"envname\": \"$custom_environment\", \"azure_region\": \"${{ env.azure_region }}\", \"chart_name\": \"${{ matrix.sre-helm-chart }}\"}"
-          echo $payload | jq .
-          echo "JSON_PAYLOAD=$payload" >> $GITHUB_ENV
+
+  # build:
+  #   if: ${{ needs.test.outputs.chart_exists == 'false' }}
+  #   needs: [test]
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     max-parallel: 1
+  #     matrix:
+  #       sre-helm-chart: [sre-grafana, sre-kafka-monitor]
+  #       # sre-helm-chart: [sre-grafana, sre-kafka-monitor, sre-otel-collector-agent, sre-otel-collector-gw]
+  #       experimental: [false]
+  #   steps:
+  #     - name: Hello World
+  #       run: echo "Hello Alex"
+
+  #     - name: Check if env is right
+  #       run: |
+  #         if [ "${{ env.deploy_environment }}" = "prf" ]; then
+  #           custom_environment="perf"
+  #         elif [ "${{ env.deploy_environment }}" = "prd" ]; then
+  #           custom_environment="prod"
+  #         else 
+  #           custom_environment=${{ env.deploy_environment }}
+  #         fi
+  #         payload="{\"envname\": \"$custom_environment\", \"azure_region\": \"${{ env.azure_region }}\", \"chart_name\": \"${{ matrix.sre-helm-chart }}\"}"
+  #         echo $payload | jq .
+  #         echo "JSON_PAYLOAD=$payload" >> $GITHUB_ENV
           
-      - name: Invoke ${{ matrix.sre-helm-chart }} chart
-        id: trigger-step
-        continue-on-error: ${{ matrix.experimental }}
-        uses: aurelien-baudet/workflow-dispatch@v2
-        with:
-          workflow: single_deploy.yml
-          inputs: ${{ env.JSON_PAYLOAD }}
-          repo: alekseyich/zmitrukevich-flow
-          ref: main
-          wait-for-completion: true
-          display-workflow-run-url: true
-          token: ${{ secrets.ACCESS_TOKEN_GITHUB }}
-          wait-for-completion-interval: 30s
+  #     - name: Invoke ${{ matrix.sre-helm-chart }} chart
+  #       id: trigger-step
+  #       continue-on-error: ${{ matrix.experimental }}
+  #       uses: aurelien-baudet/workflow-dispatch@v2
+  #       with:
+  #         workflow: single_deploy.yml
+  #         inputs: ${{ env.JSON_PAYLOAD }}
+  #         repo: alekseyich/zmitrukevich-flow
+  #         ref: main
+  #         wait-for-completion: true
+  #         display-workflow-run-url: true
+  #         token: ${{ secrets.ACCESS_TOKEN_GITHUB }}
+  #         wait-for-completion-interval: 30s
 
-      - name: Informational step
-        if: always()
-        run: |
-          echo "single_deploy.yml URL: ${{ steps.trigger-step.outputs.workflow-url }}"
+  #     - name: Informational step
+  #       if: always()
+  #       run: |
+  #         echo "single_deploy.yml URL: ${{ steps.trigger-step.outputs.workflow-url }}"
 
-      - name: Check triggered workflow status
-        if: always()
-        run: |
-          if [ ${{ steps.trigger-step.outputs.workflow-conclusion }} != 'success' ] ; then
-            echo "Triggered workflow failed"
-            exit 1
-          fi  
+  #     - name: Check triggered workflow status
+  #       if: always()
+  #       run: |
+  #         if [ ${{ steps.trigger-step.outputs.workflow-conclusion }} != 'success' ] ; then
+  #           echo "Triggered workflow failed"
+  #           exit 1
+  #         fi  
