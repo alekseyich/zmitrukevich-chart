@@ -45,8 +45,9 @@ jobs:
       - name: Hello World
         id: hello
         run: |
-          date | tee -a ./date.txt | gzip --stdout > my_log.gz
+          date | tee -a ./date.txt | gzip --stdout > ./my_log.gz
           ls -la
+          gunzip -c ./my_log.gz
           echo "------"
           cat ./date.txt
 
