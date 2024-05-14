@@ -45,7 +45,7 @@ jobs:
       - name: Hello World
         id: hello
         run: |
-          date  > ./date.txt
+          date  | tee -a ./date.txt
           ls -la
           echo "------"
           cat ./date.txt
