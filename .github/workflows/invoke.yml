@@ -55,8 +55,8 @@ jobs:
         run: |
           wget https://github.com/tmccombs/hcl2json/archive/refs/tags/v0.6.4.tar.gz
           tar -zxvf v0.6.4.tar.gz
-          chmod +x hcl2json
-          sudo mv hcl2json /usr/local/bin/
+          chmod +x hcl2json-0.6.4
+          sudo mv hcl2json-0.6.4 /usr/local/bin/
           hcl2json --version
 
   # build:
