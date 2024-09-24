@@ -42,6 +42,8 @@ jobs:
     outputs:
       chart_exists: ${{ steps.hello.outputs.chart_exists }}
     steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
       - name: Hello World
         id: hello
         run: |
