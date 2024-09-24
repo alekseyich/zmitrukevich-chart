@@ -51,14 +51,12 @@ jobs:
           echo "------"
           cat ./date.txt
 
-      - name: Set up Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: '1.16'
-
       - name: Install hcl2json
         run: |
-          go install github.com/tmccombs/hcl2json/cmd/hcl2json@latest
+          wget https://github.com/tmccombs/hcl2json/releases/download/0.6.4/hcl2json_0.6.4_Linux_x86_64.tar.gz
+          tar -zxvf hcl2json_0.6.4_Linux_x86_64.tar.gz
+          chmod +x hcl2json
+          sudo mv hcl2json /usr/local/bin/
           hcl2json --version
 
   # build:
