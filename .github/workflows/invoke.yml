@@ -50,13 +50,17 @@ jobs:
           gunzip -c ./my_log.gz
           echo "------"
           cat ./date.txt
-
+      
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21.x'  
+      
       - name: Install hcl2json
         run: |
-          wget https://github.com/tmccombs/hcl2json/archive/refs/tags/v0.6.4.tar.gz
-          tar -zxvf v0.6.4.tar.gz
-          chmod +x hcl2json-0.6.4
-          sudo mv hcl2json-0.6.4 /usr/local/bin/
+          git clone https://github.com/tmccombs/hcl2json
+          cd hcl2json
+          go build
           hcl2json --version
 
   # build:
