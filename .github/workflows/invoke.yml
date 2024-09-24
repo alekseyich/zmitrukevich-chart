@@ -59,7 +59,7 @@ jobs:
       - name: Install hcl2json
         run: |
           git clone https://github.com/tmccombs/hcl2json
-          cd hcl2json
+          ls -la
           go build
           hcl2json --version
 
