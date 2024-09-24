@@ -53,8 +53,8 @@ jobs:
 
       - name: Install hcl2json
         run: |
-          wget https://github.com/tmccombs/hcl2json/releases/download/0.6.4/hcl2json_0.6.4_Linux_x86_64.tar.gz
-          tar -zxvf hcl2json_0.6.4_Linux_x86_64.tar.gz
+          wget https://github.com/tmccombs/hcl2json/archive/refs/tags/v0.6.4.tar.gz
+          tar -zxvf v0.6.4.tar.gz
           chmod +x hcl2json
           sudo mv hcl2json /usr/local/bin/
           hcl2json --version
