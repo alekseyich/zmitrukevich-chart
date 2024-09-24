@@ -62,7 +62,7 @@ jobs:
           ls -la
           cd hcl2json
           ls -la
-          go build
+          go get
           
           hcl2json --version
 
