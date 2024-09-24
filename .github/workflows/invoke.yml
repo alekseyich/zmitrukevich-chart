@@ -58,6 +58,7 @@ jobs:
       
       - name: Convert HCL to JSON using Docker
         run: |
+          ls -la ${{ github.workspace }}
           docker pull tmccombs/hcl2json
           docker run --rm -v ${{ github.workspace }}:/data tmccombs/hcl2json /data/input.tfvars > ${{ github.workspace }}/output.json
 
