@@ -56,15 +56,14 @@ jobs:
         with:
           go-version: '1.21.x'  
       
-      - name: Install hcl2json
+      - name: Convert HCL to JSON using Docker
         run: |
-          git clone https://github.com/tmccombs/hcl2json
-          ls -la
-          cd hcl2json
-          ls -la
-          go get
+          docker pull tmccombs/hcl2json
+          docker run --rm -v ${{ github.workspace }}:/data tmccombs/hcl2json /data/input.tfvars > ${{ github.workspace }}/output.json
+
+      - name: Display the JSON output
+        run: cat ${{ github.workspace }}/output.json
           
-          hcl2json --version
 
   # build:
   #   if: ${{ needs.test.outputs.chart_exists == 'false' }}
