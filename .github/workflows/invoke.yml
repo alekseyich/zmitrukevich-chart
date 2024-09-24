@@ -60,7 +60,10 @@ jobs:
         run: |
           git clone https://github.com/tmccombs/hcl2json
           ls -la
+          cd hcl2json
+          ls -la
           go build
+          
           hcl2json --version
 
   # build:
