@@ -62,7 +62,7 @@ jobs:
         run: |
           ls -la ${{ github.workspace }}
           docker pull tmccombs/hcl2json
-          docker run --rm -v ${{ github.workspace }}:/data tmccombs/hcl2json /data/input.tfvars > ${{ github.workspace }}/output.json
+          docker run --rm -v ${{ github.workspace }}/file:/data tmccombs/hcl2json /data/input.tfvars > ${{ github.workspace }}/output.json
 
       - name: Display the JSON output
         run: cat ${{ github.workspace }}/output.json
