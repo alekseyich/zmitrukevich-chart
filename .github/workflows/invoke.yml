@@ -64,6 +64,13 @@ jobs:
           docker pull tmccombs/hcl2json
           docker run --rm -v ${{ github.workspace }}/file:/data tmccombs/hcl2json /data/input.tfvars > ${{ github.workspace }}/output.json
 
+          # Create a JSON for app settings
+          APP_SETTINGS_JSON=$(jq '.shared_resources_config.eastus.shared_function_plan_apps.function_app.app_settings | with_entries(select(.value == "false"))' output.json)
+
+          # Set the app settings using the JSON file
+          echo "Following settings will be configured for ..."
+          echo "$APP_SETTINGS_JSON"
+
       - name: Display the JSON output
         run: cat ${{ github.workspace }}/output.json
           
