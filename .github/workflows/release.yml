@@ -48,6 +48,17 @@ jobs:
     #   with:
     #     bump_each_commit: "false"
     #     debug: "${{ runner.debug == '1' }}"
+    
+    - name: Set tag
+      env:
+        GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      run: |
+        if git tag | grep -q "^${{ inputs.version }}$"; then
+          echo "::warning::Tag ${{ inputs.version }} exists."
+        else
+          git tag ${{ inputs.version }} || true
+          git push origin ${{ inputs.version }} || true
+        fi
 
     - name: Make release tag
       env:
