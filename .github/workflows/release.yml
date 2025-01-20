@@ -94,8 +94,8 @@ jobs:
         disable-autolabeler: true
         # Override the Release name/tag/version with the actual tag name
         # name: ${{ env.RELEASE_VERSION }}
-        tag: ${{ inputs.version }}
-        version: ${{ inputs.version }}
+        # tag: ${{ inputs.version }}
+        # version: ${{ inputs.version }}
         # Publish the Release
         publish: true
       env:
