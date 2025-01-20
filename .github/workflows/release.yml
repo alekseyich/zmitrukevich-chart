@@ -1,4 +1,4 @@
-name: "Apply terraform"
+name: "Create release"
 
 on:
   workflow_call:
@@ -22,7 +22,7 @@ on:
         description: "Comma separated list of teams allowed to apply in prod"
         required: true
 
-run-name: "Terraform apply in env ${{ inputs.environment }} at ${{ inputs.azure_region }}"
+run-name: "Release in env ${{ inputs.environment }} at ${{ inputs.azure_region }}"
 
 jobs:
   RELEASE:
