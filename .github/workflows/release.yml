@@ -1,26 +1,26 @@
 name: "Create release"
 
 on:
-  workflow_call:
+  workflow_dispatch:
     inputs:
       environment:
-        type: string
+        type: choice
         description: "Environment to deploy"
         required: true
         default: "dev"
+        options:
+          - dev
+          - qa
+          - uat
+          - prf
+          - prd
       azure_region:
-        type: string
-        description: "Azure cloud region"
-        required: true
-        default: "westus3"
-      ALLOWED_TO_APPLY:
-        type: string
-        description: "Comma separated list of teams allowed to apply"
-        required: true
-      ALLOWED_TO_APPLY_PROD:
-        type: string
-        description: "Comma separated list of teams allowed to apply in prod"
-        required: true
+        type: choice
+        description: "Azure regions"
+        required: false
+        options:
+          - westus3
+          - eastus
 
 run-name: "Release in env ${{ inputs.environment }} at ${{ inputs.azure_region }}"
 
