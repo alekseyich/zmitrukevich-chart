@@ -82,8 +82,8 @@ jobs:
             git tag ${{ inputs.version }} || true
             git push origin ${{ inputs.version }} || true
           fi
-          gh release create ${{ inputs.version }} \
-            --title "Release v${{ inputs.version }}" || true
+          # gh release create ${{ inputs.version }} \
+          #   --title "Release v${{ inputs.version }}" || true
         fi
         
     # - name: Set version env
