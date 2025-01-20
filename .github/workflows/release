@@ -1,0 +1,65 @@
+name: "Apply terraform"
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        type: string
+        description: "Environment to deploy"
+        required: true
+        default: "dev"
+      azure_region:
+        type: string
+        description: "Azure cloud region"
+        required: true
+        default: "westus3"
+      ALLOWED_TO_APPLY:
+        type: string
+        description: "Comma separated list of teams allowed to apply"
+        required: true
+      ALLOWED_TO_APPLY_PROD:
+        type: string
+        description: "Comma separated list of teams allowed to apply in prod"
+        required: true
+
+run-name: "Terraform apply in env ${{ inputs.environment }} at ${{ inputs.azure_region }}"
+
+jobs:
+  RELEASE:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Prepare new version
+      id: semverout
+      uses: paulhatch/semantic-version@v5.4.0
+      with:
+        bump_each_commit: "false"
+        debug: "${{ runner.debug == '1' }}"
+
+    - name: Make release tag
+      run: |
+          gh release create ${GITHUB_REF#refs/tags/} \
+            --title "Release v${GITHUB_REF#refs/tags/}" || true
+
+    - name: Make release main
+      if: github.ref == 'refs/heads/main'
+      run: |
+        if gh release view "${{ steps.semverout.outputs.version }}" > /dev/null 2>&1; then
+          echo "::warning::Release ${{ steps.semverout.outputs.version }} exists."
+        else
+          if ! git tag | grep -q "^${{ steps.semverout.outputs.version }}$"; then
+            git tag ${{ steps.semverout.outputs.version }} || true
+            git push origin ${{ steps.semverout.outputs.version }} || true
+          fi
+          gh release create ${{ steps.semverout.outputs.version }} \
+            --title "Release v${{ steps.semverout.outputs.version }}" || true
+        fi
