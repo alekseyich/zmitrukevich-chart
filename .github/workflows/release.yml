@@ -92,7 +92,7 @@ jobs:
     - name: version
       id: version
       run: |
-        tag={{ inputs.version }}
+        tag=${{ inputs.version }}
         version=${tag#v}
         major=${version%%.*}
         echo "tag=${tag}" >> $GITHUB_OUTPUT
