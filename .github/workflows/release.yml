@@ -90,6 +90,7 @@ jobs:
       # Use a little bit of bash to extract the tag name from the GitHub ref
       # run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
     - uses: release-drafter/release-drafter@v5
+      id: release_notes
       with:
         disable-autolabeler: true
         # Override the Release name/tag/version with the actual tag name
@@ -99,4 +100,15 @@ jobs:
         # Publish the Release
         publish: true
       env:
-        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}    
+        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+
+    - name: Create Release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+      with:
+        tag_name: ${{ inputs.version }}
+        release_name: Release ${{ inputs.version }}
+        body: ${{ steps.release_notes.outputs.release_notes }}
+        draft: false
+        prerelease: false    
