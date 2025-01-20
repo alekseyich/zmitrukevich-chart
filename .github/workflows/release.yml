@@ -47,7 +47,7 @@ jobs:
 
     - name: Make release tag
       env:
-        GH_TOKEN: ${{ github.token }}
+        GH_TOKEN: ${{ secrets.ACCESS_TOKEN_GITHUB }}
       run: |
           gh release create ${GITHUB_REF#refs/tags/} \
             --title "Release v${GITHUB_REF#refs/tags/}" || true
@@ -55,7 +55,7 @@ jobs:
     - name: Make release main
       if: github.ref == 'refs/heads/main'
       env:
-        GH_TOKEN: ${{ github.token }}
+        GH_TOKEN: ${{ secrets.ACCESS_TOKEN_GITHUB }}
       run: |
         if gh release view "${{ steps.semverout.outputs.version }}" > /dev/null 2>&1; then
           echo "::warning::Release ${{ steps.semverout.outputs.version }} exists."
