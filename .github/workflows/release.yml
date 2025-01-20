@@ -63,28 +63,28 @@ jobs:
           git push origin ${{ inputs.version }} || true
         fi
 
-    - name: Make release tag
-      env:
-        GH_TOKEN: ${{ secrets.GH_TOKEN }}
-      run: |
-          gh release create ${GITHUB_REF#refs/tags/} \
-            --title "Release v${GITHUB_REF#refs/tags/}" || true
+    # - name: Make release tag
+    #   env:
+    #     GH_TOKEN: ${{ secrets.GH_TOKEN }}
+    #   run: |
+    #       gh release create ${GITHUB_REF#refs/tags/} \
+    #         --title "Release v${GITHUB_REF#refs/tags/}" || true
 
-    - name: Make release main
-      if: github.ref == 'refs/heads/main'
-      env:
-        GH_TOKEN: ${{ secrets.GH_TOKEN }}
-      run: |
-        if gh release view "${{ inputs.version }}" > /dev/null 2>&1; then
-          echo "::warning::Release ${{ inputs.version }} exists."
-        else
-          if ! git tag | grep -q "^${{ inputs.version }}$"; then
-            git tag ${{ inputs.version }} || true
-            git push origin ${{ inputs.version }} || true
-          fi
-          # gh release create ${{ inputs.version }} \
-          #   --title "Release v${{ inputs.version }}" || true
-        fi
+    # - name: Make release main
+    #   if: github.ref == 'refs/heads/main'
+    #   env:
+    #     GH_TOKEN: ${{ secrets.GH_TOKEN }}
+    #   run: |
+    #     if gh release view "${{ inputs.version }}" > /dev/null 2>&1; then
+    #       echo "::warning::Release ${{ inputs.version }} exists."
+    #     else
+    #       if ! git tag | grep -q "^${{ inputs.version }}$"; then
+    #         git tag ${{ inputs.version }} || true
+    #         git push origin ${{ inputs.version }} || true
+    #       fi
+    #       # gh release create ${{ inputs.version }} \
+    #       #   --title "Release v${{ inputs.version }}" || true
+    #     fi
         
     # - name: Set version env
       # Use a little bit of bash to extract the tag name from the GitHub ref
