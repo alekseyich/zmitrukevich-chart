@@ -52,16 +52,16 @@ jobs:
     #     bump_each_commit: "false"
     #     debug: "${{ runner.debug == '1' }}"
     
-    - name: Set tag
-      env:
-        GH_TOKEN: ${{ secrets.GH_TOKEN }}
-      run: |
-        if git tag | grep -q "^${{ inputs.version }}$"; then
-          echo "::warning::Tag ${{ inputs.version }} exists."
-        else
-          git tag ${{ inputs.version }} || true
-          git push origin ${{ inputs.version }} || true
-        fi
+    # - name: Set tag
+    #   env:
+    #     GH_TOKEN: ${{ secrets.GH_TOKEN }}
+    #   run: |
+    #     if git tag | grep -q "^${{ inputs.version }}$"; then
+    #       echo "::warning::Tag ${{ inputs.version }} exists."
+    #     else
+    #       git tag ${{ inputs.version }} || true
+    #       git push origin ${{ inputs.version }} || true
+    #     fi
 
     # - name: Make release tag
     #   env:
@@ -89,26 +89,23 @@ jobs:
     # - name: Set version env
       # Use a little bit of bash to extract the tag name from the GitHub ref
       # run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
-    - uses: release-drafter/release-drafter@v5
-      id: release_notes
+    - name: version
+      id: version
+      run: |
+        tag={{ inputs.version }}
+        version=${tag#v}
+        major=${version%%.*}
+        echo "tag=${tag}" >> $GITHUB_OUTPUT
+        echo "version=${version}" >> $GITHUB_OUTPUT
+        echo "major=${major}" >> $GITHUB_OUTPUT
+
+    - uses: release-drafter/release-drafter@master
       with:
-        disable-autolabeler: true
-        # Override the Release name/tag/version with the actual tag name
-        # name: ${{ env.RELEASE_VERSION }}
-        # tag: ${{ inputs.version }}
-        # version: ${{ inputs.version }}
-        # Publish the Release
+        version: ${{ steps.version.outputs.version }}
         publish: true
       env:
-        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-
-    - name: Create Release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-      with:
-        tag_name: ${{ inputs.version }}
-        release_name: Release ${{ inputs.version }}
-        body: ${{ steps.release_notes.outputs.release_notes }}
-        draft: false
-        prerelease: false    
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: force update major tag
+      run: |
+        git tag v${{ steps.version.outputs.major }} ${{ steps.version.outputs.tag }} -f
+        git push origin refs/tags/v${{ steps.version.outputs.major }} -f     
