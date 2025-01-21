@@ -108,7 +108,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         TAG_NAME=$(git describe --tags --abbrev=0)  # Assuming latest tag points to the current commit
-        RELEASE_NOTES=$(gh release create $TAG_NAME --draft --generate-notes --title "Release $TAG_NAME" --json body --jq .body)
+        RELEASE_NOTES=$(gh release create $TAG_NAME --draft --generate-notes --title "Release $TAG_NAME")
         echo "RELEASE_NOTES=$RELEASE_NOTES" >> $GITHUB_ENV
 
     - name: Identify New Contributors
