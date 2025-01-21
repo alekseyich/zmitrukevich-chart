@@ -80,7 +80,6 @@ jobs:
             --generate-notes || true
         fi
 
-        
     # - name: Detect New Contributors
     #   id: new_contributors
     #   run: |
