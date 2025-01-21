@@ -120,11 +120,20 @@ jobs:
         PREV_CONTRIBUTORS: ${{ steps.prev_contrib.outputs.list }}
       with:
         script: |
-          const newContributors = context.payload.commits
-            .map(commit => commit.author.username)
-            .filter(username => !process.env.PREV_CONTRIBUTORS.includes(username))
+          const commits = context.payload.commits;
+    
+          if (!commits) {
+            console.log('No commit data available.');
+            core.setOutput('list', '');
+            return;
+          }
+      
+          const usernameList = commits
+            .map(commit => commit.author && commit.author.username)
+            .filter(username => Boolean(username) && !process.env.PREV_CONTRIBUTORS.includes(username))
             .filter((v, i, a) => a.indexOf(v) === i); // Remove duplicates
-          core.setOutput('list', newContributors.join('\n'));
+  
+          core.setOutput('list', usernameList.join('\n'));
 
     - name: Update Release Notes
       if: steps.new_contrib.outputs.list
