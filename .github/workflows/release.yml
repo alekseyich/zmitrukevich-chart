@@ -66,9 +66,10 @@ jobs:
     - name: Detect New Contributors
       id: new_contributors
       run: |
-        new_contribs=$(git log --format='%aN' ${{ github.event.before }}..${{ github.event.after }} | sort | uniq)
-        echo "new_contributors=[$new_contribs]" >> $GITHUB_ENV
-        echo "::set-output name=list::$new_contribs"
+        PREV_RELEASE_TAG=$(git describe --tags --abbrev=0 HEAD^)  # Previous tag
+        NEW_CONTRIBS=$(git log $PREV_RELEASE_TAG..HEAD --format='%aN' | sort -u)
+        echo "New contributors: $NEW_CONTRIBS"
+        echo "::set-output name=new_contributors::$NEW_CONTRIBS"
 
     - name: Make release main
       if: github.ref == 'refs/heads/main'
@@ -85,7 +86,7 @@ jobs:
           gh release create ${{ inputs.version }} \
             --title "Release v${{ inputs.version }}" \
             --generate-notes \
-            --notes "### New Contributors:\n${{ steps.new_contributors.outputs.list }} || true
+            --notes "### New Contributors:\n${{ steps.new_contributors.outputs.new_contributors }} || true
         fi
         
     # - name: Set version env
