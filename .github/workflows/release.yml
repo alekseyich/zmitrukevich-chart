@@ -136,7 +136,7 @@ jobs:
           core.setOutput('list', usernameList.join('\n'));
 
     - name: Update Release Notes
-      if: steps.new_contrib.outputs.list
+      # if: steps.new_contrib.outputs.list
       uses: actions/github-script@v4
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
