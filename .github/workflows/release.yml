@@ -105,7 +105,7 @@ jobs:
         publish: true
       env:
         GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-    - name: force update major tag
-      run: |
-        git tag v${{ steps.version.outputs.major }} ${{ steps.version.outputs.tag }} -f
-        git push origin refs/tags/v${{ steps.version.outputs.major }} -f     
+    # - name: force update major tag
+    #   run: |
+    #     git tag v${{ steps.version.outputs.major }} ${{ steps.version.outputs.tag }} -f
+    #     git push origin refs/tags/v${{ steps.version.outputs.major }} -f     
