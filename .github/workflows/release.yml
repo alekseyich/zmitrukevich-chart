@@ -79,6 +79,7 @@ jobs:
             --title "Release v${{ inputs.version }}" \
             --generate-notes || true
         fi
+
         
     # - name: Detect New Contributors
     #   id: new_contributors
