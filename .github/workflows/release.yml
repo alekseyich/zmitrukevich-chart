@@ -93,7 +93,7 @@ jobs:
         GH_TOKEN: ${{ secrets.GH_TOKEN }}
       run: |
         RELEASE_ID=$(gh release view --json id --jq '.id' -t ${{ inputs.version }})
-        gh release edit "$RELEASE_ID" --notes "New Contributors: ${{ steps.new_contributors.outputs.new_contributors }}"
+        gh release edit "v$RELEASE_ID" --notes "New Contributors: ${{ steps.new_contributors.outputs.new_contributors }}"
         
     # - name: Set version env
       # Use a little bit of bash to extract the tag name from the GitHub ref
