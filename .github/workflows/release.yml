@@ -105,7 +105,7 @@ jobs:
     - name: Create Release with Auto-Generated Notes
       id: auto_release
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
       run: |
         TAG_NAME=$(git describe --tags --abbrev=0)  # Assuming latest tag points to the current commit
         RELEASE_NOTES=$(gh release create $TAG_NAME --draft --generate-notes --title "Release $TAG_NAME")
@@ -122,7 +122,7 @@ jobs:
     - name: Update Release
       if: success()
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
       run: |
         gh release edit $TAG_NAME \
           --notes "${{ env.RELEASE_NOTES }}\n\n### What's Changed\nFor detailed changes, see the [commit history](https://github.com/your-repo/your-project/commits/${{ github.sha }}).\n\n### New Contributors\n${{ env.NEW_CONTRIBS }}"
