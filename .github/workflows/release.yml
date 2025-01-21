@@ -63,14 +63,6 @@ jobs:
     #       gh release create ${GITHUB_REF#refs/tags/} \
     #         --title "Release v${GITHUB_REF#refs/tags/}" || true
 
-    - name: Detect New Contributors
-      id: new_contributors
-      run: |
-        PREV_RELEASE_TAG=$(git describe --tags --abbrev=0 HEAD^)  # Previous tag
-        NEW_CONTRIBS=$(git log $PREV_RELEASE_TAG..HEAD --format='%aN' | sort -u)
-        echo "New contributors: $NEW_CONTRIBS"
-        echo "::set-output name=new_contributors::$NEW_CONTRIBS"
-
     - name: Make release main
       if: github.ref == 'refs/heads/main'
       env:
@@ -86,8 +78,22 @@ jobs:
           gh release create ${{ inputs.version }} \
             --title "Release v${{ inputs.version }}" \
             --generate-notes \
-            --notes "### New Contributors:\n${{ steps.new_contributors.outputs.new_contributors }}" || true
+            --draft || true
         fi
+        
+    - name: Detect New Contributors
+      id: new_contributors
+      run: |
+        PREV_RELEASE_TAG=$(git describe --tags --abbrev=0 HEAD^)  # Previous tag
+        NEW_CONTRIBS=$(git log $PREV_RELEASE_TAG..HEAD --format='%aN' | sort -u)
+        echo "New contributors: $NEW_CONTRIBS"
+        echo "::set-output name=new_contributors::$NEW_CONTRIBS"
+    - name: Update release with new contributors
+      env:
+        GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      run: |
+        RELEASE_ID=$(gh release view --json id --jq '.id' -t ${{ inputs.version }})
+        gh release edit "$RELEASE_ID" --notes "New Contributors: ${{ steps.new_contributors.outputs.new_contributors }}"
         
     # - name: Set version env
       # Use a little bit of bash to extract the tag name from the GitHub ref
