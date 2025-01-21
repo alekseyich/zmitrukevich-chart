@@ -92,7 +92,11 @@ jobs:
       env:
         GH_TOKEN: ${{ secrets.GH_TOKEN }}
       run: |
-        RELEASE_ID=$(gh release view --json id --jq '.id' -t ${{ inputs.version }})
+        LATEST_TAG=${{ inputs.version }}
+        LATEST_TAG_NEW=$(git describe --tags `git rev-list --tags --max-count=1`)
+        echo $LATEST_TAG
+        echo $LATEST_TAG_NEW
+        RELEASE_ID=$(gh release view $LATEST_TAG --json id --jq '.id')
         gh release edit "v$RELEASE_ID" --notes "New Contributors: ${{ steps.new_contributors.outputs.new_contributors }}"
         
     # - name: Set version env
