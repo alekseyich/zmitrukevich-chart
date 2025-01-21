@@ -56,30 +56,30 @@ jobs:
           git push origin ${{ inputs.version }} || true
         fi
 
-    # - name: Make release tag
-    #   env:
-    #     GH_TOKEN: ${{ secrets.GH_TOKEN }}
-    #   run: |
-    #       gh release create ${GITHUB_REF#refs/tags/} \
-    #         --title "Release v${GITHUB_REF#refs/tags/}" || true
+    - name: Make release tag
+      env:
+        GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      run: |
+          gh release create ${GITHUB_REF#refs/tags/} \
+            --title "Release v${GITHUB_REF#refs/tags/}" || true
 
-    # - name: Make release main
-    #   if: github.ref == 'refs/heads/main'
-    #   env:
-    #     GH_TOKEN: ${{ secrets.GH_TOKEN }}
-    #   run: |
-    #     if gh release view "${{ inputs.version }}" > /dev/null 2>&1; then
-    #       echo "::warning::Release ${{ inputs.version }} exists."
-    #     else
-    #       if ! git tag | grep -q "^${{ inputs.version }}$"; then
-    #         git tag ${{ inputs.version }} || true
-    #         git push origin ${{ inputs.version }} || true
-    #       fi
-    #       gh release create ${{ inputs.version }} \
-    #         --title "Release v${{ inputs.version }}" \
-    #         --generate-notes \
-    #         --draft || true
-    #     fi
+    - name: Make release main
+      if: github.ref == 'refs/heads/main'
+      env:
+        GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      run: |
+        if gh release view "${{ inputs.version }}" > /dev/null 2>&1; then
+          echo "::warning::Release ${{ inputs.version }} exists."
+        else
+          if ! git tag | grep -q "^${{ inputs.version }}$"; then
+            git tag ${{ inputs.version }} || true
+            git push origin ${{ inputs.version }} || true
+          fi
+          gh release create ${{ inputs.version }} \
+            --title "Release v${{ inputs.version }}" \
+            --generate-notes \
+            --draft || true
+        fi
         
     # - name: Detect New Contributors
     #   id: new_contributors
@@ -102,31 +102,7 @@ jobs:
     #     NEW_NOTES="## New Contributors:\n${{ steps.new_contributors.outputs.new_contributors }}"
     #     gh release edit $LATEST_TAG --notes $NEW_NOTES --draft=false || true
 
-    - name: Create Release with Auto-Generated Notes
-      id: auto_release
-      env:
-        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-      run: |
-        TAG_NAME=$(git describe --tags --abbrev=0)  # Assuming latest tag points to the current commit
-        RELEASE_NOTES=$(gh release create $TAG_NAME --draft --generate-notes --title "Release $TAG_NAME")
-        echo "RELEASE_NOTES=$RELEASE_NOTES" >> $GITHUB_ENV
 
-    - name: Identify New Contributors
-      id: new_contributors
-      run: |
-        PREV_TAG=$(git describe --tags --abbrev=0 HEAD^)
-        NEW_CONTRIBS=$(git log $PREV_TAG..HEAD --format='%aN <%ae>' | sort | uniq)
-        echo "New contributors: $NEW_CONTRIBS"
-        echo "NEW_CONTRIBS=$NEW_CONTRIBS" >> $GITHUB_ENV
-
-    - name: Update Release
-      if: success()
-      env:
-        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-      run: |
-        gh release edit $TAG_NAME \
-          --notes "${{ env.RELEASE_NOTES }}\n\n### What's Changed\nFor detailed changes, see the [commit history](https://github.com/your-repo/your-project/commits/${{ github.sha }}).\n\n### New Contributors\n${{ env.NEW_CONTRIBS }}"
-        
     # - name: Set version env
       # Use a little bit of bash to extract the tag name from the GitHub ref
       # run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
