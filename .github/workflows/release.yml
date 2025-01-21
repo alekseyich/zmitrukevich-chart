@@ -88,6 +88,7 @@ jobs:
         NEW_CONTRIBS=$(git log $PREV_RELEASE_TAG..HEAD --format='%an <%ae>' | sort -u)
         echo "New contributors: $NEW_CONTRIBS"
         echo "::set-output name=new_contributors::$NEW_CONTRIBS"
+        
     - name: Update release with new contributors
       env:
         GH_TOKEN: ${{ secrets.GH_TOKEN }}
@@ -98,8 +99,8 @@ jobs:
         echo $LATEST_TAG_NEW
         RELEASE_ID=$(gh release view $LATEST_TAG --json id --jq '.id')
         echo $RELEASE_ID
-        NEW_NOTES="## New Contributors:\n${{ steps.new_contributors.outputs.new_contributors }}\n"
-        gh release edit $LATEST_TAG --notes $NEW_NOTES  --draft=false || true
+        NEW_NOTES="## New Contributors:\n${{ steps.new_contributors.outputs.new_contributors }}"
+        gh release edit $LATEST_TAG --notes $NEW_NOTES --draft=false || true
         
     # - name: Set version env
       # Use a little bit of bash to extract the tag name from the GitHub ref
