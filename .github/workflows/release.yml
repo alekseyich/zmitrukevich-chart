@@ -99,13 +99,42 @@ jobs:
         echo "version=${version}" >> $GITHUB_OUTPUT
         echo "major=${major}" >> $GITHUB_OUTPUT
 
-    - uses: release-drafter/release-drafter@master
+    - name: Get Previous Contributors
+      id: prev_contrib
+      uses: actions/github-script@v4
       with:
-        version: ${{ steps.version.outputs.version }}
-        publish: true
+        script: |
+          const repo = { owner: context.repo.owner, repo: context.repo.repo };
+          const contributors = await github.paginate('GET /repos/{owner}/{repo}/contributors', repo);
+          core.setOutput('list', contributors.map(user => user.login));
+
+    - name: Draft Release
+      uses: release-drafter/release-drafter@v5.15.0
       env:
         GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-    # - name: force update major tag
-    #   run: |
-    #     git tag v${{ steps.version.outputs.major }} ${{ steps.version.outputs.tag }} -f
-    #     git push origin refs/tags/v${{ steps.version.outputs.major }} -f     
+
+    - name: Find New Contributors
+      id: new_contrib
+      uses: actions/github-script@v4
+      env:
+        PREV_CONTRIBUTORS: ${{ steps.prev_contrib.outputs.list }}
+      with:
+        script: |
+          const newContributors = context.payload.commits
+            .map(commit => commit.author.username)
+            .filter(username => !process.env.PREV_CONTRIBUTORS.includes(username))
+            .filter((v, i, a) => a.indexOf(v) === i); // Remove duplicates
+          core.setOutput('list', newContributors.join('\n'));
+
+    - name: Update Release Notes
+      if: steps.new_contrib.outputs.list
+      uses: actions/github-script@v4
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          const newContribStr = `## New Contributors:\n${steps.new_contrib.outputs.list}`;
+          const release = await github.repos.getReleaseByTag({ owner: context.repo.owner, repo: context.repo.repo, tag: 'latest' });
+          github.repos.updateRelease({
+            release_id: release.data.id,
+            body: release.data.body + "\n\n" + newContribStr
+          });     
