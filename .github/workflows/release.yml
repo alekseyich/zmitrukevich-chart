@@ -86,7 +86,7 @@ jobs:
           gh release create ${{ inputs.version }} \
             --title "Release v${{ inputs.version }}" \
             --generate-notes \
-            --notes "### New Contributors:\n${{ steps.new_contributors.outputs.new_contributors }} || true
+            --notes "### New Contributors:\n${{ steps.new_contributors.outputs.new_contributors }}" || true
         fi
         
     # - name: Set version env
