@@ -52,16 +52,16 @@ jobs:
     #     bump_each_commit: "false"
     #     debug: "${{ runner.debug == '1' }}"
     
-    # - name: Set tag
-    #   env:
-    #     GH_TOKEN: ${{ secrets.GH_TOKEN }}
-    #   run: |
-    #     if git tag | grep -q "^${{ inputs.version }}$"; then
-    #       echo "::warning::Tag ${{ inputs.version }} exists."
-    #     else
-    #       git tag ${{ inputs.version }} || true
-    #       git push origin ${{ inputs.version }} || true
-    #     fi
+    - name: Set tag
+      env:
+        GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      run: |
+        if git tag | grep -q "^${{ inputs.version }}$"; then
+          echo "::warning::Tag ${{ inputs.version }} exists."
+        else
+          git tag ${{ inputs.version }} || true
+          git push origin ${{ inputs.version }} || true
+        fi
 
     # - name: Make release tag
     #   env:
@@ -70,80 +70,81 @@ jobs:
     #       gh release create ${GITHUB_REF#refs/tags/} \
     #         --title "Release v${GITHUB_REF#refs/tags/}" || true
 
-    # - name: Make release main
-    #   if: github.ref == 'refs/heads/main'
-    #   env:
-    #     GH_TOKEN: ${{ secrets.GH_TOKEN }}
-    #   run: |
-    #     if gh release view "${{ inputs.version }}" > /dev/null 2>&1; then
-    #       echo "::warning::Release ${{ inputs.version }} exists."
-    #     else
-    #       if ! git tag | grep -q "^${{ inputs.version }}$"; then
-    #         git tag ${{ inputs.version }} || true
-    #         git push origin ${{ inputs.version }} || true
-    #       fi
-    #       # gh release create ${{ inputs.version }} \
-    #       #   --title "Release v${{ inputs.version }}" || true
-    #     fi
+    - name: Make release main
+      if: github.ref == 'refs/heads/main'
+      env:
+        GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      run: |
+        if gh release view "${{ inputs.version }}" > /dev/null 2>&1; then
+          echo "::warning::Release ${{ inputs.version }} exists."
+        else
+          if ! git tag | grep -q "^${{ inputs.version }}$"; then
+            git tag ${{ inputs.version }} || true
+            git push origin ${{ inputs.version }} || true
+          fi
+          gh release create ${{ inputs.version }} \
+            --title "Release v${{ inputs.version }}" \
+            --generate-notes || true
+        fi
         
     # - name: Set version env
       # Use a little bit of bash to extract the tag name from the GitHub ref
       # run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
-    - name: version
-      id: version
-      run: |
-        tag=${{ inputs.version }}
-        version=${tag#v}
-        major=${version%%.*}
-        echo "tag=${tag}" >> $GITHUB_OUTPUT
-        echo "version=${version}" >> $GITHUB_OUTPUT
-        echo "major=${major}" >> $GITHUB_OUTPUT
+    # - name: version
+    #   id: version
+    #   run: |
+    #     tag=${{ inputs.version }}
+    #     version=${tag#v}
+    #     major=${version%%.*}
+    #     echo "tag=${tag}" >> $GITHUB_OUTPUT
+    #     echo "version=${version}" >> $GITHUB_OUTPUT
+    #     echo "major=${major}" >> $GITHUB_OUTPUT
 
-    - name: Get Previous Contributors
-      id: prev_contrib
-      uses: actions/github-script@v4
-      with:
-        script: |
-          const repo = { owner: context.repo.owner, repo: context.repo.repo };
-          const contributors = await github.paginate('GET /repos/{owner}/{repo}/contributors', repo);
-          core.setOutput('list', contributors.map(user => user.login));
+    # - name: Get Previous Contributors
+    #   id: prev_contrib
+    #   uses: actions/github-script@v4
+    #   with:
+    #     script: |
+    #       const repo = { owner: context.repo.owner, repo: context.repo.repo };
+    #       const contributors = await github.paginate('GET /repos/{owner}/{repo}/contributors', repo);
+    #       core.setOutput('list', contributors.map(user => user.login));
 
-    - name: Draft Release
-      uses: release-drafter/release-drafter@v5.15.0
-      env:
-        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+    # - name: Draft Release
+    #   uses: release-drafter/release-drafter@v5.15.0
+    #   env:
+    #     GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
 
-    - name: Find New Contributors
-      id: new_contrib
-      uses: actions/github-script@v4
-      env:
-        PREV_CONTRIBUTORS: ${{ steps.prev_contrib.outputs.list }}
-      with:
-        script: |
-          const commits = context.payload.commits;
+    # - name: Find New Contributors
+    #   id: new_contrib
+    #   uses: actions/github-script@v4
+    #   env:
+    #     PREV_CONTRIBUTORS: ${{ steps.prev_contrib.outputs.list }}
+    #   with:
+    #     script: |
+    #       const commits = context.payload.commits;
     
-          if (!commits) {
-            console.log('No commit data available.');
-            core.setOutput('list', '');
-            return;
-          }
+    #       if (!commits) {
+    #         console.log('No commit data available.');
+    #         core.setOutput('list', '');
+    #         return;
+    #       }
       
-          const usernameList = commits
-            .map(commit => commit.author && commit.author.username)
-            .filter(username => Boolean(username) && !process.env.PREV_CONTRIBUTORS.includes(username))
-            .filter((v, i, a) => a.indexOf(v) === i); // Remove duplicates
+    #       const usernameList = commits
+    #         .map(commit => commit.author && commit.author.username)
+    #         .filter(username => Boolean(username) && !process.env.PREV_CONTRIBUTORS.includes(username))
+    #         .filter((v, i, a) => a.indexOf(v) === i); // Remove duplicates
   
-          core.setOutput('list', usernameList.join('\n'));
+    #       core.setOutput('list', usernameList.join('\n'));
 
-    - name: Update Release Notes
-      # if: steps.new_contrib.outputs.list
-      uses: actions/github-script@v4
-      with:
-        github-token: ${{ secrets.GH_TOKEN }}
-        script: |
-          const newContribStr = `## New Contributors:\n${steps.new_contrib.outputs.list}`;
-          const release = await github.repos.getReleaseByTag({ owner: context.repo.owner, repo: context.repo.repo, tag: 'latest' });
-          github.repos.updateRelease({
-            release_id: release.data.id,
-            body: release.data.body + "\n\n" + newContribStr
-          });     
+    # - name: Update Release Notes
+    #   # if: steps.new_contrib.outputs.list
+    #   uses: actions/github-script@v4
+    #   with:
+    #     github-token: ${{ secrets.GH_TOKEN }}
+    #     script: |
+    #       const newContribStr = `## New Contributors:\n${steps.new_contrib.outputs.list}`;
+    #       const release = await github.repos.getReleaseByTag({ owner: context.repo.owner, repo: context.repo.repo, tag: 'latest' });
+    #       github.repos.updateRelease({
+    #         release_id: release.data.id,
+    #         body: release.data.body + "\n\n" + newContribStr
+    #       });     
