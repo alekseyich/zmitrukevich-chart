@@ -63,44 +63,67 @@ jobs:
     #       gh release create ${GITHUB_REF#refs/tags/} \
     #         --title "Release v${GITHUB_REF#refs/tags/}" || true
 
-    - name: Make release main
-      if: github.ref == 'refs/heads/main'
-      env:
-        GH_TOKEN: ${{ secrets.GH_TOKEN }}
-      run: |
-        if gh release view "${{ inputs.version }}" > /dev/null 2>&1; then
-          echo "::warning::Release ${{ inputs.version }} exists."
-        else
-          if ! git tag | grep -q "^${{ inputs.version }}$"; then
-            git tag ${{ inputs.version }} || true
-            git push origin ${{ inputs.version }} || true
-          fi
-          gh release create ${{ inputs.version }} \
-            --title "Release v${{ inputs.version }}" \
-            --generate-notes \
-            --draft || true
-        fi
+    # - name: Make release main
+    #   if: github.ref == 'refs/heads/main'
+    #   env:
+    #     GH_TOKEN: ${{ secrets.GH_TOKEN }}
+    #   run: |
+    #     if gh release view "${{ inputs.version }}" > /dev/null 2>&1; then
+    #       echo "::warning::Release ${{ inputs.version }} exists."
+    #     else
+    #       if ! git tag | grep -q "^${{ inputs.version }}$"; then
+    #         git tag ${{ inputs.version }} || true
+    #         git push origin ${{ inputs.version }} || true
+    #       fi
+    #       gh release create ${{ inputs.version }} \
+    #         --title "Release v${{ inputs.version }}" \
+    #         --generate-notes \
+    #         --draft || true
+    #     fi
         
-    - name: Detect New Contributors
-      id: new_contributors
-      run: |
-        PREV_RELEASE_TAG=$(git describe --tags --abbrev=0 HEAD^)  # Previous tag
-        NEW_CONTRIBS=$(git log $PREV_RELEASE_TAG..HEAD --format='%an <%ae>' | sort -u)
-        echo "New contributors: $NEW_CONTRIBS"
-        echo "::set-output name=new_contributors::$NEW_CONTRIBS"
+    # - name: Detect New Contributors
+    #   id: new_contributors
+    #   run: |
+    #     PREV_RELEASE_TAG=$(git describe --tags --abbrev=0 HEAD^)  # Previous tag
+    #     NEW_CONTRIBS=$(git log $PREV_RELEASE_TAG..HEAD --format='%aN <%ae>>' | sort -u)
+    #     echo "New contributors: $NEW_CONTRIBS"
+    #     echo "::set-output name=new_contributors::$NEW_CONTRIBS"
         
-    - name: Update release with new contributors
-      env:
-        GH_TOKEN: ${{ secrets.GH_TOKEN }}
+    # - name: Update release with new contributors
+    #   env:
+    #     GH_TOKEN: ${{ secrets.GH_TOKEN }}
+    #   run: |
+    #     LATEST_TAG=${{ inputs.version }}
+    #     LATEST_TAG_NEW=$(git describe --tags `git rev-list --tags --max-count=1`)
+    #     echo $LATEST_TAG
+    #     echo $LATEST_TAG_NEW
+    #     RELEASE_ID=$(gh release view $LATEST_TAG --json id --jq '.id')
+    #     echo $RELEASE_ID
+    #     NEW_NOTES="## New Contributors:\n${{ steps.new_contributors.outputs.new_contributors }}"
+    #     gh release edit $LATEST_TAG --notes $NEW_NOTES --draft=false || true
+
+    - name: Get Changes Since Last Tag
+      id: changes
       run: |
-        LATEST_TAG=${{ inputs.version }}
-        LATEST_TAG_NEW=$(git describe --tags `git rev-list --tags --max-count=1`)
-        echo $LATEST_TAG
-        echo $LATEST_TAG_NEW
-        RELEASE_ID=$(gh release view $LATEST_TAG --json id --jq '.id')
-        echo $RELEASE_ID
-        NEW_NOTES="## New Contributors:\n${{ steps.new_contributors.outputs.new_contributors }}"
-        gh release edit $LATEST_TAG --notes $NEW_NOTES --draft=false || true
+        git fetch --all --tags
+        PREV_TAG=$(git describe --tags --abbrev=0 HEAD^)
+        CHANGES=$(git log $PREV_TAG..HEAD --oneline)
+        echo "::set-output name=changes::$(echo "$CHANGES")"
+
+    - name: Fetch new contributors
+      id: contributors
+      run: |
+        PREV_TAG=$(git describe --tags --abbrev=0 HEAD^)
+        CONTRIBUTORS=$(git log $PREV_TAG..HEAD --format='%aN <%ae>')
+        echo "::set-output name=new_contributors::$(echo "$CONTRIBUTORS" | sort | uniq)"
+
+    - name: Create Release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        CURRENT_TAG=$(git describe --tags --abbrev=0)
+        gh release create "$CURRENT_TAG" --generate-notes \
+          --notes "## What's Changed\n${{ steps.changes.outputs.changes }}\n## New Contributors\n${{ steps.contributors.outputs.new_contributors }}"
         
     # - name: Set version env
       # Use a little bit of bash to extract the tag name from the GitHub ref
