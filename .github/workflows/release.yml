@@ -77,8 +77,7 @@ jobs:
           fi
           gh release create ${{ inputs.version }} \
             --title "Release v${{ inputs.version }}" \
-            --generate-notes \
-            --draft || true
+            --generate-notes || true
         fi
         
     # - name: Detect New Contributors
