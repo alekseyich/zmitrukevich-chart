@@ -56,12 +56,12 @@ jobs:
           git push origin ${{ inputs.version }} || true
         fi
 
-    - name: Make release tag
-      env:
-        GH_TOKEN: ${{ secrets.GH_TOKEN }}
-      run: |
-          gh release create ${GITHUB_REF#refs/tags/} \
-            --title "Release v${GITHUB_REF#refs/tags/}" || true
+    # - name: Make release tag
+    #   env:
+    #     GH_TOKEN: ${{ secrets.GH_TOKEN }}
+    #   run: |
+    #       gh release create ${GITHUB_REF#refs/tags/} \
+    #         --title "Release v${GITHUB_REF#refs/tags/}" || true
 
     - name: Make release main
       if: github.ref == 'refs/heads/main'
