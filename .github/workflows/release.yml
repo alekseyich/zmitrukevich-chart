@@ -139,7 +139,7 @@ jobs:
       # if: steps.new_contrib.outputs.list
       uses: actions/github-script@v4
       with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
+        github-token: ${{ secrets.GH_TOKEN }}
         script: |
           const newContribStr = `## New Contributors:\n${steps.new_contrib.outputs.list}`;
           const release = await github.repos.getReleaseByTag({ owner: context.repo.owner, repo: context.repo.repo, tag: 'latest' });
