@@ -68,42 +68,7 @@ jobs:
         echo "Current Tag: $CURRENT_TAG"
         echo "Previous Tag: $PREVIOUS_TAG"
         
-    - name: Obtain contributors and generate release notes
-      id: contributors
-      uses: actions/github-script@v4
-      with:
-        github-token: ${{ secrets.GH_TOKEN }}
-        script: |
-          const fromTag = process.env.PREVIOUS_TAG;  // replace with dynamic fetching if needed
-          const toTag = process.env.CURRENT_TAG;    // replace with dynamic fetching if needed
-          const commits = await github.repos.compareCommits({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            base: fromTag,
-            head: toTag
-          });
-          
-          const contributors = new Set();
-          commits.data.commits.forEach(commit => {
-            contributors.add(commit.author.login);
-          });
-          
-          let releaseNotes = "## Contributors\n";
-          contributors.forEach(contributor => {
-            releaseNotes += `- @${contributor}\n`;
-          });
-          
-          console.log(releaseNotes);
-          return releaseNotes;   
-
-    # - name: Make release tag
-    #   env:
-    #     GH_TOKEN: ${{ secrets.GH_TOKEN }}
-    #   run: |
-    #       gh release create ${GITHUB_REF#refs/tags/} \
-    #         --title "Release v${GITHUB_REF#refs/tags/}" || true
-
-    - name: Make release main
+    - name: Make draft release
       if: github.ref == 'refs/heads/main'
       env:
         GH_TOKEN: ${{ secrets.GH_TOKEN }}
@@ -117,8 +82,44 @@ jobs:
           fi
           gh release create ${{ inputs.version }} \
             --title "Release v${{ inputs.version }}" \
-            --notes ${{ steps.contributors.outputs.result }} || true
-        fi
+            --generate-notes --draft || true
+        fi    
+        
+    - name: Get new contributors list
+      id: contributors
+      run: |
+        git log $PREVIOUS_TAG..$CURRENT_TAG --format='%aN <%aE>' | sort -u > contributors.txt
+        echo "::set-output name=list::$(<contributors.txt)"   
+
+    # - name: Make release tag
+    #   env:
+    #     GH_TOKEN: ${{ secrets.GH_TOKEN }}
+    #   run: |
+    #       gh release create ${GITHUB_REF#refs/tags/} \
+    #         --title "Release v${GITHUB_REF#refs/tags/}" || true
+
+    - name: Get Current Release Notes
+      id: current_notes
+      run: |
+        RELEASE_NOTES=$(gh release view $CURRENT_TAG -q '.body')
+        echo "::set-output name=release_notes::$RELEASE_NOTES"
+        
+    - name: Append New Contributor
+      id: updated_notes
+      run: |
+        NEW_NOTES="${{ steps.current_notes.outputs.release_notes }}\nContributed by: ${{ github.contributors.outputs.list }}"
+        echo "::set-output name=updated_release_notes::${NEW_NOTES}"    
+
+    - name: Make edit release and publish
+      if: github.ref == 'refs/heads/main'
+      env:
+        GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      run: |
+          echo "${{ steps.updated_notes.outputs.updated_release_notes }}" | \
+          gh release edit $CURRENT_TAG \
+            --notes-file - --draft=false || true
+            
+   
 
     # - name: Detect New Contributors
     #   id: new_contributors
