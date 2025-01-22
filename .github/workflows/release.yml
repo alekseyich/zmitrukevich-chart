@@ -55,6 +55,46 @@ jobs:
           git tag ${{ inputs.version }} || true
           git push origin ${{ inputs.version }} || true
         fi
+        
+    - name: Get tags
+      id: get_tags
+      run: |
+        git fetch --depth=1 origin +refs/tags/*:refs/tags/*  # Ensure all tags are fetched
+        echo "CURRENT_TAG=$(git describe --tags --abbrev=0)" >> $GITHUB_ENV
+        echo "PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^)" >> $GITHUB_ENV
+
+    - name: Print tags
+      run: |
+        echo "Current Tag: $CURRENT_TAG"
+        echo "Previous Tag: $PREVIOUS_TAG"
+        
+    - name: Obtain contributors and generate release notes
+      id: contributors
+      uses: actions/github-script@v4
+      with:
+        github-token: ${{secrets.GITHUB_TOKEN}}
+        script: |
+          const fromTag = process.env.PREVIOUS_TAG;  // replace with dynamic fetching if needed
+          const toTag = process.env.CURRENT_TAG;    // replace with dynamic fetching if needed
+          const commits = await github.repos.compareCommits({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            base: fromTag,
+            head: toTag
+          });
+          
+          const contributors = new Set();
+          commits.data.commits.forEach(commit => {
+            contributors.add(commit.author.login);
+          });
+          
+          let releaseNotes = "## Contributors\n";
+          contributors.forEach(contributor => {
+            releaseNotes += `- @${contributor}\n`;
+          });
+          
+          console.log(releaseNotes);
+          return releaseNotes;   
 
     # - name: Make release tag
     #   env:
@@ -77,7 +117,7 @@ jobs:
           fi
           gh release create ${{ inputs.version }} \
             --title "Release v${{ inputs.version }}" \
-            --generate-notes || true
+            --notes ${{ steps.contributors.outputs.result }} || true
         fi
 
     # - name: Detect New Contributors
