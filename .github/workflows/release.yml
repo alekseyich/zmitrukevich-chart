@@ -100,6 +100,8 @@ jobs:
 
     - name: Get Current Release Notes
       id: current_notes
+      env:
+        GH_TOKEN: ${{ secrets.GH_TOKEN }}
       run: |
         RELEASE_NOTES=$(gh release view $CURRENT_TAG -q '.body')
         echo "::set-output name=release_notes::$RELEASE_NOTES"
