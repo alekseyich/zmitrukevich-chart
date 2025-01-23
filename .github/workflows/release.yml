@@ -74,7 +74,7 @@ jobs:
       env:
         GH_TOKEN: ${{ secrets.GH_TOKEN }}
       run: |
-        gh release create ${{ inputs.version }} \
+        gh release create \
             --title "Release v${{ inputs.version }}" \
             --generate-notes || true  
         
