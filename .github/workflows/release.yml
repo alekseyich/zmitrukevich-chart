@@ -76,18 +76,7 @@ jobs:
       run: |
         gh release create ${{ inputs.version }} \
             --title "Release v${{ inputs.version }}" \
-            --generate-notes || true
-        # if gh release view "${{ inputs.version }}" > /dev/null 2>&1; then
-        #   echo "::warning::Release ${{ inputs.version }} exists."
-        # else
-        #   if ! git tag | grep -q "^${{ inputs.version }}$"; then
-        #     git tag ${{ inputs.version }} || true
-        #     git push origin ${{ inputs.version }} || true
-        #   fi
-        #   gh release create ${{ inputs.version }} \
-        #     --title "Release v${{ inputs.version }}" \
-        #     --generate-notes || true
-        # fi    
+            --generate-notes || true  
         
     # - name: Get new contributors list
     #   id: contributors
