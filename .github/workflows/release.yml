@@ -45,51 +45,54 @@ jobs:
       with:
         fetch-depth: 0
     
-    - name: Set tag
-      env:
-        GH_TOKEN: ${{ secrets.GH_TOKEN }}
-      run: |
-        if git tag | grep -q "^${{ inputs.version }}$"; then
-          echo "::warning::Tag ${{ inputs.version }} exists."
-        else
-          git tag ${{ inputs.version }} || true
-          git push origin ${{ inputs.version }} || true
-        fi
+    # - name: Set tag
+    #   env:
+    #     GH_TOKEN: ${{ secrets.GH_TOKEN }}
+    #   run: |
+    #     if git tag | grep -q "^${{ inputs.version }}$"; then
+    #       echo "::warning::Tag ${{ inputs.version }} exists."
+    #     else
+    #       git tag ${{ inputs.version }} || true
+    #       git push origin ${{ inputs.version }} || true
+    #     fi
         
-    - name: Get tags
-      id: get_tags
-      run: |
-        git fetch --depth=1 origin +refs/tags/*:refs/tags/*  # Ensure all tags are fetched
-        echo "CURRENT_TAG=$(git describe --tags --abbrev=0)" >> $GITHUB_ENV
-        echo "PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^)" >> $GITHUB_ENV
+    # - name: Get tags
+    #   id: get_tags
+    #   run: |
+    #     git fetch --depth=1 origin +refs/tags/*:refs/tags/*  # Ensure all tags are fetched
+    #     echo "CURRENT_TAG=$(git describe --tags --abbrev=0)" >> $GITHUB_ENV
+    #     echo "PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^)" >> $GITHUB_ENV
 
     - name: Print tags
       run: |
         echo "Current Tag: $CURRENT_TAG"
         echo "Previous Tag: $PREVIOUS_TAG"
         
-    - name: Make draft release
+    - name: Make release
       if: github.ref == 'refs/heads/main'
       env:
         GH_TOKEN: ${{ secrets.GH_TOKEN }}
       run: |
-        if gh release view "${{ inputs.version }}" > /dev/null 2>&1; then
-          echo "::warning::Release ${{ inputs.version }} exists."
-        else
-          if ! git tag | grep -q "^${{ inputs.version }}$"; then
-            git tag ${{ inputs.version }} || true
-            git push origin ${{ inputs.version }} || true
-          fi
-          gh release create ${{ inputs.version }} \
+        gh release create ${{ inputs.version }} \
             --title "Release v${{ inputs.version }}" \
-            --generate-notes --draft || true
-        fi    
+            --generate-notes || true
+        # if gh release view "${{ inputs.version }}" > /dev/null 2>&1; then
+        #   echo "::warning::Release ${{ inputs.version }} exists."
+        # else
+        #   if ! git tag | grep -q "^${{ inputs.version }}$"; then
+        #     git tag ${{ inputs.version }} || true
+        #     git push origin ${{ inputs.version }} || true
+        #   fi
+        #   gh release create ${{ inputs.version }} \
+        #     --title "Release v${{ inputs.version }}" \
+        #     --generate-notes || true
+        # fi    
         
-    - name: Get new contributors list
-      id: contributors
-      run: |
-        git log $PREVIOUS_TAG..$CURRENT_TAG --format='%aN <%aE>' | sort -u > contributors.txt
-        echo "::set-output name=list::$(<contributors.txt)"   
+    # - name: Get new contributors list
+    #   id: contributors
+    #   run: |
+    #     git log $PREVIOUS_TAG..$CURRENT_TAG --format='%aN <%aE>' | sort -u > contributors.txt
+    #     echo "::set-output name=list::$(<contributors.txt)"   
 
     # - name: Make release tag
     #   env:
