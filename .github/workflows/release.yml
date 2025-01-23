@@ -101,28 +101,28 @@ jobs:
     #       gh release create ${GITHUB_REF#refs/tags/} \
     #         --title "Release v${GITHUB_REF#refs/tags/}" || true
 
-    - name: Get Current Release Notes
-      id: current_notes
-      env:
-        GH_TOKEN: ${{ secrets.GH_TOKEN }}
-      run: |
-        RELEASE_NOTES=$(gh release view $CURRENT_TAG -q '.body')
-        echo "::set-output name=release_notes::$RELEASE_NOTES"
+    # - name: Get Current Release Notes
+    #   id: current_notes
+    #   env:
+    #     GH_TOKEN: ${{ secrets.GH_TOKEN }}
+    #   run: |
+    #     RELEASE_NOTES=$(gh release view $CURRENT_TAG -q '.body')
+    #     echo "::set-output name=release_notes::$RELEASE_NOTES"
         
-    - name: Append New Contributor
-      id: updated_notes
-      run: |
-        NEW_NOTES="${{ steps.current_notes.outputs.release_notes }}\nContributed by: ${{ github.contributors.outputs.list }}"
-        echo "::set-output name=updated_release_notes::${NEW_NOTES}"    
+    # - name: Append New Contributor
+    #   id: updated_notes
+    #   run: |
+    #     NEW_NOTES="${{ steps.current_notes.outputs.release_notes }}\nContributed by: ${{ github.contributors.outputs.list }}"
+    #     echo "::set-output name=updated_release_notes::${NEW_NOTES}"    
 
-    - name: Make edit release and publish
-      if: github.ref == 'refs/heads/main'
-      env:
-        GH_TOKEN: ${{ secrets.GH_TOKEN }}
-      run: |
-          echo "${{ steps.updated_notes.outputs.updated_release_notes }}" | \
-          gh release edit $CURRENT_TAG \
-            --notes-file - --draft=false || true
+    # - name: Make edit release and publish
+    #   if: github.ref == 'refs/heads/main'
+    #   env:
+    #     GH_TOKEN: ${{ secrets.GH_TOKEN }}
+    #   run: |
+    #       echo "${{ steps.updated_notes.outputs.updated_release_notes }}" | \
+    #       gh release edit $CURRENT_TAG \
+    #         --notes-file - --draft=false || true
             
    
 
